@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Piket Kelas | Dashboard Monitoring</title>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js untuk Grafik Realtime -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigasi -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-icon">
+                    <i data-lucide="shield-check"></i>
+                </div>
+                <div class="brand-text">
+                    <h2>PIKET<span class="highlight">OS</span></h2>
+                    <p>Class Monitoring v2.6</p>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard Utama</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="jadwal">
+                    <i data-lucide="calendar-days"></i>
+                    <span>Jadwal Piket</span>
+                </a>
+                <a href="#" class="nav-item" data-tab="laporan">
+                    <i data-lucide="clipboard-check"></i>
+                    <span>Verifikasi Tugas</span>
+                </a>
+            </nav>
+
+            <div class="firebase-status-card">
+                <div class="status-header">
+                    <span class="pulse-dot" id="fb-dot"></span>
+                    <span id="fb-status-text">Firebase Realtime</span>
+                </div>
+                <p class="status-desc" id="fb-mode-desc">Sinkronisasi Cloud Aktif</p>
+            </div>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="main-content">
+            <!-- Header Topbar -->
+            <header class="topbar">
+                <div>
+                    <h1>Dashboard Monitoring Piket Kelas</h1>
+                    <p class="subtitle" id="current-date-display">Memuat tanggal...</p>
+                </div>
+                <div class="topbar-actions">
+                    <div class="live-clock" id="live-clock">00:00:00</div>
+                    <button class="btn-primary" id="btn-simulasi">
+                        <i data-lucide="zap"></i> Simulasi Update Live
+                    </button>
+                </div>
+            </header>
+
+            <!-- Kartu Statistik Utama (KPI) -->
+            <section class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>Skor Kebersihan Kelas</span>
+                        <div class="icon-box cyan"><i data-lucide="sparkles"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-kebersihan">92%</div>
+                    <div class="kpi-trend positive">
+                        <i data-lucide="trending-up"></i> +4% dari kemarin
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>Tugas Selesai Hari Ini</span>
+                        <div class="icon-box purple"><i data-lucide="check-circle-2"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-tugas">5 / 6</div>
+                    <div class="kpi-trend">
+                        <span>83.3% Progres Harian</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>Petugas Piket Aktif</span>
+                        <div class="icon-box emerald"><i data-lucide="users"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-petugas">6 Siswa</div>
+                    <div class="kpi-trend positive">
+                        <span id="hari-aktif-label">Regu Sabtu</span>
+                    </div>
+                </div>
+
+                <div class="kpi-card">
+                    <div class="kpi-header">
+                        <span>Status Inspeksi Wali Kelas</span>
+                        <div class="icon-box amber"><i data-lucide="award"></i></div>
+                    </div>
+                    <div class="kpi-value" id="kpi-status">Sangat Baik</div>
+                    <div class="kpi-trend">
+                        <span>Terakhir dicek 10 mnt lalu</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Area Grafik Realtime & Daftar Tugas -->
+            <section class="dashboard-grid">
+                <!-- Grafik Realtime -->
+                <div class="panel chart-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Grafik Indeks Kebersihan & Kepatuhan (Realtime)</h3>
+                            <p>Pemantauan performa kebersihan kelas per sesi jam pelajaran</p>
+                        </div>
+                        <span class="badge-live">LIVE STREAM</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="realtimeChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Checklist Tugas Piket Harian (Terhubung ke Firebase) -->
+                <div class="panel checklist-panel">
+                    <div class="panel-header">
+                        <div>
+                            <h3>Checklist Tugas Piket</h3>
+                            <p>Klik tugas untuk memperbarui status secara langsung</p>
+                        </div>
+                    </div>
+                    <ul class="task-list" id="task-list-container">
+                        <!-- Di-render secara dinamis oleh script.js -->
+                    </ul>
+                    <form class="add-task-form" id="add-task-form">
+                        <input type="text" id="new-task-input" placeholder="Tambah tugas piket baru..." required>
+                        <button type="submit" title="Tambah Tugas"><i data-lucide="plus"></i></button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Tabel Jadwal Regu Piket & Log Aktivitas -->
+            <section class="bottom-grid">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Regu Piket Bertugas Hari Ini</h3>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="futuristic-table">
+                            <thead>
+                                <tr>
+                                    <th>Nama Siswa</th>
+                                    <th>Area Tanggung Jawab</th>
+                                    <th>Waktu Check-in</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="roster-table-body">
+                                <!-- Di-render oleh script.js -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Log Sinkronisasi Sistem</h3>
+                    </div>
+                    <div class="activity-log" id="activity-log">
+                        <!-- Di-render oleh script.js -->
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Firebase SDK (Compat v10 untuk kemudahan integrasi vanilla JS) -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+    <!-- Custom Script -->
+    <script src="script.js"></script>
+</body>
+</html>
